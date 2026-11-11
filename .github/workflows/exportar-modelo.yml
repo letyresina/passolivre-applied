@@ -38,11 +38,17 @@ jobs:
           output.write_bytes(Path(generated).read_bytes())
           print(output, output.stat().st_size)
           PY
-      - name: Publicar modelo
+      - name: Baixar exemplos publicos do conjunto de teste
+        run: |
+          mkdir -p public/exemplos
+          BASE='https://raw.githubusercontent.com/letyresina/auditoria-calcadas-yolov8/main/dataset/test/images'
+          curl --fail --location --retry 3 "$BASE/1027648026455965_jpg.rf.0c74ebcad0025a089ed1113df0388e0d.jpg" -o public/exemplos/piso-tatil.jpg
+          curl --fail --location --retry 3 "$BASE/imagem_2026-10-09_192502543_png.rf.2b2fb8295fdb95f645eaf477c1a03042.jpg" -o public/exemplos/desnivel.jpg
+      - name: Publicar modelo e exemplos
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public/models/calcadas.onnx
+          git add public/models/calcadas.onnx public/exemplos/*.jpg
           if ! git diff --cached --quiet; then
             git commit -m 'Publica modelo de detecção em ONNX'
             git push origin HEAD:main
