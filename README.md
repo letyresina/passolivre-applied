@@ -13,7 +13,7 @@
 Há duas interfaces neste repositório:
 
 1. **Aplicação React** (`app/page.tsx`): câmera, envio de imagens, detecção YOLOv8, registros manuais e histórico local.
-2. **Demonstração estática** (`demo/index.html`): página independente feita para testar e gravar a detecção real no navegador, inclusive com **fotos do dataset de teste**.
+2. **Demonstração estática** (`demo/index.html`): página independente feita para testar e gravar a detecção real no navegador, inclusive com **fotos do dataset de teste** e **análise contínua de quadros da câmera**.
 
 **Para publicar a demonstração via GitHub Pages:** no repositório, abra **Settings → Pages → Build and deployment → Deploy from a branch** e escolha **main / (root)**, depois **Save**. Após a ativação, acesse:
 
@@ -72,7 +72,7 @@ Então abra `http://localhost:8000/demo/` no mesmo computador. Para usar a câme
 3. Clique em **Detectar com inteligência artificial**.
 4. Mostre as **caixas** sobre a foto e as porcentagens de confiança retornadas pelo YOLOv8.
 5. Explique o treinamento customizado, as três classes, o pré-processamento, as métricas e as limitações.
-6. Caso deseje, mostre o envio de outra foto e a câmera, quando houver permissão.
+6. Opcionalmente, abra a câmera e clique em **Iniciar detecção ao vivo**. A página processa sucessivos quadros, respeitando o tempo de inferência do dispositivo.
 
 Veja também [GUIA_DE_GRAVACAO.md](GUIA_DE_GRAVACAO.md).
 
