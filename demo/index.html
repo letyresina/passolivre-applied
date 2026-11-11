@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#6D28D9">
+  <title>PassoLivre · Demo de Visão Computacional</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap');
+    :root{--purple:#6d28d9;--teal:#0f766e;--ink:#172033;--gray:#6d7484;--stroke:#e6e4ed}
+    *{box-sizing:border-box}body{margin:0;background:#f8fafc;color:var(--ink);font:14px 'Open Sans',Arial,sans-serif}
+    button,input{font:inherit}button{cursor:pointer;border:0}button:disabled{opacity:.5;cursor:wait}
+    header{background:#fff;border-bottom:1px solid var(--stroke);padding:18px max(20px,calc((100vw - 1150px)/2));display:flex;justify-content:space-between;align-items:center;gap:20px}
+    header img{max-width:185px;max-height:58px;object-fit:contain}.tag{display:inline-block;color:#0f766e;background:#e6f4f0;padding:8px 13px;border-radius:30px;font-size:11px;font-weight:700}
+    main{max-width:1150px;margin:auto;padding:38px 22px 45px}
+    .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#0f766e;font-weight:700}
+    h1,h2,h3{font-family:'Readex Pro',Arial,sans-serif;letter-spacing:-.025em}
+    h1{font-size:clamp(30px,4vw,44px);font-weight:500;line-height:1.22;margin:15px 0 12px}h1 span{color:var(--purple)}
+    .lead{color:var(--gray);line-height:1.8;max-width:730px;margin-bottom:28px}
+    .layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:20px}
+    .card{background:#fff;border:1px solid var(--stroke);border-radius:16px;padding:23px;box-shadow:0 5px 25px #17203306}
+    h2{font-weight:500;font-size:18px;margin:0 0 18px}.canvas-wrap{border-radius:12px;background:#f1ebfa;min-height:320px;overflow:hidden;display:grid;place-items:center;position:relative}
+    canvas{display:none;width:100%;height:auto;max-height:480px;object-fit:contain;background:#101828}
+    video{display:none;width:100%;max-height:480px;background:#101828;object-fit:contain}
+    .placeholder{padding:40px 18px;text-align:center;color:#777184;line-height:1.8}
+    .placeholder .camera{font-size:48px;margin-bottom:12px}.placeholder strong{display:block;color:#322446}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}
+    .btn{border-radius:9px;font-weight:700;font-size:12px;padding:13px 16px;min-height:46px;display:inline-flex;align-items:center;gap:7px;justify-content:center}
+    .primary{background:var(--purple);color:#fff}.primary:hover{background:#5920b3}
+    .secondary{color:#42384e;background:#fff;border:1px solid #ddd8e7}.secondary:hover{background:#f9f6ff}
+    .strong{width:100%;margin-top:12px}
+    .mini{font-size:11px;color:var(--gray);line-height:1.8}
+    .sample-box{background:#f5f0fc;border:1px solid #e9def6;border-radius:11px;padding:15px;margin-top:17px}
+    .sample-box strong{font-size:12px;color:#60389b}.sample-box .btn{font-size:11px;min-height:38px;padding:9px 11px}
+    .status{margin:16px 0 0;background:#eff7f4;border:1px solid #c7e7dc;color:#225b4c;border-radius:10px;padding:13px 14px;line-height:1.6;white-space:pre-wrap;font-size:12px}
+    .card-purple{background:#f2eafb;border-color:#e3d5f4}.card-purple h2{color:#4d2673;font-size:23px;line-height:1.4}
+    .card-purple p{font-size:12px;color:#6a5b79;line-height:1.9;margin:0}
+    .pill{font-size:11px;font-weight:700;color:#70469c;letter-spacing:1px}.classes{display:flex;gap:8px;flex-wrap:wrap;margin-top:19px}
+    .classes span{font-size:10px;padding:7px 10px;background:#fff;border-radius:7px;border:1px solid #e0d5ed}
+    .results{margin-top:18px}.results h2{margin-bottom:12px}
+    .result{border-left:4px solid #7c3aed;padding:10px 12px;background:#f7f4fe;margin-bottom:9px;border-radius:5px;font-size:12px}
+    .result small{color:#807689}.foot{margin-top:24px;padding-top:17px;border-top:1px solid var(--stroke);color:#8b90a0;font-size:10px;line-height:1.7}
+    footer{font-size:10px;color:#9095a2;text-align:center;border-top:1px solid var(--stroke);padding:25px 20px}
+    @media(max-width:760px){.layout{grid-template-columns:1fr}header{padding:15px 18px}header img{max-width:145px}.tag{font-size:9px;padding:7px 9px}main{padding:30px 16px}.card{padding:17px}.canvas-wrap{min-height:270px}.actions .btn{flex:1}.lead{font-size:12px}}
+  </style>
+</head>
+<body>
+  <header><img src="../public/passolivre-logo.png" alt="PassoLivre"><span class="tag">FIAP · APPLIED COMPUTER VISION</span></header>
+  <main>
+    <span class="eyebrow">Tecnologia a serviço do caminho</span>
+    <h1>Um olhar atento.<br><span>Um caminho mais livre.</span></h1>
+    <p class="lead">Detector experimental YOLOv8 treinado para reconhecer buracos, desníveis e piso tátil em calçadas. Faça um teste com uma imagem, use a câmera ou escolha exemplos do dataset.</p>
+    <div class="layout">
+      <section class="card">
+        <h2>01 · Observe o caminho</h2>
+        <div class="canvas-wrap">
+          <div id="placeholder" class="placeholder"><div class="camera">▣</div><strong>Escolha uma imagem para iniciar</strong>Você não precisa estar na rua para demonstrar a detecção.</div>
+          <canvas id="canvas" aria-label="Imagem de calçada com caixas de detecção"></canvas>
+          <video id="video" autoplay playsinline muted></video>
+        </div>
+        <input id="upload" type="file" accept="image/*" hidden>
+        <div class="actions">
+          <button class="btn secondary" id="choose">📷 Enviar foto</button>
+          <button class="btn secondary" id="camera">🎥 Abrir câmera</button>
+          <button class="btn secondary" id="capture" style="display:none">Capturar imagem</button>
+        </div>
+        <div class="sample-box"><strong>Teste sem sair de casa</strong>
+          <div class="actions">
+            <button class="btn secondary" id="sample-tatil">Exemplo: piso tátil</button>
+            <button class="btn secondary" id="sample-desnivel">Exemplo: desnível</button>
+          </div>
+        </div>
+        <button id="analyze" class="btn primary strong" disabled>◎ Detectar com inteligência artificial</button>
+        <div id="status" class="status" role="status">Selecione uma imagem para iniciar. As predições são feitas pelo modelo treinado, não são simuladas.</div>
+      </section>
+      <div>
+        <section class="card card-purple">
+          <div class="pill">● MODELO TREINADO · YOLOV8</div>
+          <h2>Visão computacional aplicada à acessibilidade.</h2>
+          <p>O modelo ONNX é executado no próprio navegador via ONNX Runtime Web. Cada detecção é exibida com caixa delimitadora, classe e confiança. Piso tátil é um recurso de acessibilidade, não uma barreira.</p>
+          <div class="classes"><span>Buraco</span><span>Desnível</span><span>Piso tátil</span></div>
+        </section>
+        <section class="card results">
+          <h2>02 · Resultado da inspeção</h2>
+          <div id="results"><p class="mini">As classes detectadas e as porcentagens de confiança aparecerão aqui.</p></div>
+          <p class="mini">Modelo acadêmico experimental. Pode produzir falsos positivos ou deixar de detectar objetos; não atesta a segurança de uma rota.</p>
+        </section>
+      </div>
+    </div>
+    <div class="foot">Projeto acadêmico CitizenTech · FIAP 2026 · Leticia Resina (RM 98069), Sabrina Flores (RM 550781) e Gabriel Riquetto (RM 98685). Os exemplos são originários do conjunto de teste de auditoria de calçadas. Fotos locais não são enviadas a servidores para análise.</div>
+  </main>
+  <footer>PassoLivre · Mais autonomia a cada passo. · Demonstração de Applied Computer Vision.</footer>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js"></script>
+  <script>
+    (function(){
+      'use strict';
+      var SIZE=512, NAMES=['Buraco','Desnível','Piso tátil'];
+      var COLORS=['#e11d48','#7c3aed','#0f766e'];
+      var CDN='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+      var canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
+      var status=document.getElementById('status'), results=document.getElementById('results');
+      var video=document.getElementById('video'), placeholder=document.getElementById('placeholder');
+      var analyze=document.getElementById('analyze'), cameraButton=document.getElementById('camera'), captureButton=document.getElementById('capture');
+      var photo=null, stream=null, sessionPromise=null;
+      var upload=document.getElementById('upload');
+      function setStatus(msg){status.textContent=msg}
+      function stopCamera(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}video.style.display='none';captureButton.style.display='none';cameraButton.textContent='🎥 Abrir câmera'}
+      function showImage(img){stopCamera();photo=img;canvas.width=img.naturalWidth||img.width;canvas.height=img.naturalHeight||img.height;ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.style.display='block';placeholder.style.display='none';results.innerHTML='<p class="mini">Imagem carregada. Clique em detectar para executar o modelo treinado.</p>';analyze.disabled=false;setStatus('Imagem pronta. Clique em "Detectar com inteligência artificial".')}
+      function loadSrc(src){setStatus('Carregando imagem...');var image=new Image();image.onload=function(){showImage(image)};image.onerror=function(){setStatus('Não foi possível abrir esta imagem.')};image.src=src}
+      document.getElementById('choose').onclick=function(){upload.click()};
+      upload.onchange=function(){var file=upload.files[0];if(!file)return;if(!file.type.startsWith('image/')){setStatus('Selecione uma imagem JPG ou PNG.');return}var reader=new FileReader();reader.onload=function(){loadSrc(String(reader.result))};reader.readAsDataURL(file);upload.value=''};
+      document.getElementById('sample-tatil').onclick=function(){loadSrc('../public/exemplos/piso-tatil.jpg')};
+      document.getElementById('sample-desnivel').onclick=function(){loadSrc('../public/exemplos/desnivel.jpg')};
+      cameraButton.onclick=async function(){
+        if(stream){stopCamera();return}
+        try{
+          if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Error('Câmera não disponível. Use uma imagem.');
+          stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+          video.srcObject=stream;await video.play();canvas.style.display='none';placeholder.style.display='none';video.style.display='block';captureButton.style.display='inline-flex';cameraButton.textContent='Fechar câmera';analyze.disabled=true;setStatus('Câmera aberta. Capture uma imagem antes de analisar.');
+        }catch(e){setStatus('Não foi possível abrir a câmera: '+(e.message||'verifique as permissões.'));stopCamera()}
+      };
+      captureButton.onclick=function(){
+        if(!video.videoWidth)return;
+        var c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0,c.width,c.height);
+        loadSrc(c.toDataURL('image/jpeg',.9));
+      };
+      function getSession(){
+        if(!sessionPromise){
+          sessionPromise=(async function(){
+            if(!window.ort)throw Error('Não foi possível carregar ONNX Runtime Web. Verifique a conexão com a internet.');
+            ort.env.wasm.wasmPaths=CDN;ort.env.wasm.numThreads=1;
+            var url='../public/models/calcadas.onnx';
+            var response=await fetch(url);
+            if(!response.ok)throw Error('Modelo ONNX não encontrado. Confira o GitHub Actions.');
+            return ort.InferenceSession.create(await response.arrayBuffer(),{executionProviders:['wasm']});
+          })().catch(function(e){sessionPromise=null;throw e});
+        }return sessionPromise
+      }
+      function overlap(a,b){
+        var w=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));
+        var h=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+        var inter=w*h,uni=a.w*a.h+b.w*b.h-inter;
+        return uni>0?inter/uni:0;
+      }
+      function suppress(list){
+        list.sort(function(a,b){return b.score-a.score});
+        var found=[];
+        for(var i=0;i<list.length;i++){
+          var item=list[i],duplicate=found.some(function(other){return other.id===item.id&&overlap(item,other)>.45});
+          if(!duplicate)found.push(item);if(found.length>=30)break;
+        }return found;
+      }
+      analyze.onclick=async function(){
+        if(!photo)return;
+        analyze.disabled=true;analyze.textContent='Analisando com YOLOv8...';setStatus('Carregando o modelo e processando a imagem. Na primeira análise pode demorar um pouco.');
+        try{
+          var session=await getSession();
+          var ratio=Math.min(SIZE/canvas.width,SIZE/canvas.height), w=canvas.width*ratio,h=canvas.height*ratio;
+          var ox=(SIZE-w)/2,oy=(SIZE-h)/2;
+          var off=document.createElement('canvas');off.width=SIZE;off.height=SIZE;var c=off.getContext('2d',{willReadFrequently:true});
+          c.fillStyle='#727272';c.fillRect(0,0,SIZE,SIZE);c.drawImage(photo,ox,oy,w,h);
+          var rgba=c.getImageData(0,0,SIZE,SIZE).data,plane=SIZE*SIZE,input=new Float32Array(3*plane);
+          for(var k=0;k<plane;k++){input[k]=rgba[4*k]/255;input[k+plane]=rgba[4*k+1]/255;input[k+2*plane]=rgba[4*k+2]/255}
+          var feeds={};feeds[session.inputNames[0]]=new ort.Tensor('float32',input,[1,3,SIZE,SIZE]);
+          var data=await session.run(feeds),out=data[session.outputNames[0]],d=out.dims;
+          var channelsFirst=d[1]===7,count=channelsFirst?d[2]:d[1];
+          if(d.length!==3 || (channelsFirst?d[1]:d[2])!==7)throw Error('Formato de saída ONNX inesperado.');
+          var get=function(i,ch){return Number(out.data[channelsFirst?ch*count+i:i*7+ch])};
+          var proposals=[];
+          for(var n=0;n<count;n++){
+            var score=0,id=0;
+            for(var cl=0;cl<3;cl++){var v=get(n,cl+4);if(v>score){score=v;id=cl}}
+            if(score<.25)continue;
+            var cx=get(n,0),cy=get(n,1),bw=get(n,2),bh=get(n,3);
+            var left=Math.max(0,(cx-bw/2-ox)/ratio),top=Math.max(0,(cy-bh/2-oy)/ratio);
+            var right=Math.min(canvas.width,(cx+bw/2-ox)/ratio),bottom=Math.min(canvas.height,(cy+bh/2-oy)/ratio);
+            if([left,top,right,bottom].every(Number.isFinite)&&right>left&&bottom>top)proposals.push({id:id,score:score,x:left,y:top,w:right-left,h:bottom-top});
+          }
+          var found=suppress(proposals);ctx.drawImage(photo,0,0,canvas.width,canvas.height);
+          var font=Math.max(13,Math.floor(Math.min(canvas.width,canvas.height)/32));
+          ctx.lineWidth=Math.max(2,font/6);ctx.font='bold '+font+'px Arial';
+          found.forEach(function(f){
+            ctx.strokeStyle=COLORS[f.id];ctx.strokeRect(f.x,f.y,f.w,f.h);
+            var label=NAMES[f.id]+' '+Math.round(f.score*100)+'%',labelW=ctx.measureText(label).width;
+            var y=Math.max(font+8,f.y);
+            ctx.fillStyle=COLORS[f.id];ctx.fillRect(f.x,y-font-7,labelW+14,font+11);
+            ctx.fillStyle='#fff';ctx.fillText(label,f.x+7,y-5);
+          });
+          results.innerHTML='';
+          if(!found.length)results.innerHTML='<p class="mini">A análise foi executada, mas nenhuma detecção superou 25% de confiança. Teste outra imagem.</p>';
+          found.forEach(function(f){
+            var div=document.createElement('div');div.className='result';div.style.borderLeftColor=COLORS[f.id];
+            div.textContent=NAMES[f.id]+' · '+Math.round(f.score*100)+'% de confiança';
+            results.appendChild(div);
+          });
+          setStatus('Análise concluída. '+found.length+' detecção(ões) real(is) retornada(s) pelo modelo treinado. A IA pode errar.');
+        }catch(e){setStatus('Erro ao executar detector: '+(e.message||String(e)))}
+        finally{analyze.disabled=false;analyze.textContent='◎ Detectar com inteligência artificial'}
+      };
+    })();
+  </script>
+</body>
+</html>
