@@ -6,11 +6,9 @@ Projeto acadêmico CitizenTech da Global Solution FIAP — Engenharia de Softwar
 
 ## Integrantes
 
-- Leticia Resina
-- Sabrina Flores
-- Gabriel Riquetto
-
-Os RMs ainda precisam ser incluídos antes da entrega.
+- Leticia Resina - RM 98069
+- Sabrina Flores - RM 550781
+- Gabriel Riquetto - RM 98685
 
 ## Estado atual
 
