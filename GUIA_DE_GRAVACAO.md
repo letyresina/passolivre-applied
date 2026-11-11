@@ -7,7 +7,7 @@
 3. Acesse **https://letyresina.github.io/passolivre-applied/demo/** e verifique se a imagem de exemplo e o modelo carregam.
 4. Teste primeiro **Exemplo: piso tátil**. Depois teste **Exemplo: desnível**. As detecções dependem da confiança e podem variar; se uma imagem não apresentar caixas, use a outra e não simule resultados.
 5. No computador, grave a tela com OBS ou a ferramenta nativa do sistema; no celular, use a gravação de tela do aparelho.
-6. Se o navegador pedir permissão da câmera, aceite apenas se for utilizá-la.
+6. Opcional: abra a câmera e clique em **Iniciar detecção ao vivo** para mostrar a análise automática de quadros sucessivos. É possível apontar a câmera para uma imagem de calçada exibida em outra tela, desde que você explique que se trata de uma demonstração.
 
 ## Sequência sugerida para o vídeo (aproximadamente 90 segundos)
 
@@ -34,7 +34,7 @@
 
 - A interface principal do PassoLivre salva registros manuais no navegador. O detector não substitui a avaliação humana.
 - A **demonstração estática do GitHub Pages** é uma interface separada da versão original hospedada no domínio privado. Atualizar o GitHub não atualiza automaticamente a hospedagem privada anterior.
-- Esta versão processa uma **imagem ou quadro capturado por câmera** por vez; ainda não executa detecção continuamente sobre todos os quadros de um vídeo ao vivo. Não descreva a implementação como detecção contínua em tempo real.
+- A demonstração estática também oferece **análise contínua por captura sucessiva de quadros da câmera**, com intervalos definidos pelo tempo de inferência e um pequeno intervalo de espera. Isso não garante taxa fixa de FPS e pode ser mais lento em aparelhos móveis.
 - O trabalho também pede **PDF técnico** (resumo, introdução, objetivo, ferramentas, metodologia, resultados, conclusão) e link do repositório. Inclua esses itens na submissão.
 
 ## Links
