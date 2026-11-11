@@ -21,7 +21,7 @@
     .card{background:#fff;border:1px solid var(--stroke);border-radius:16px;padding:23px;box-shadow:0 5px 25px #17203306}
     h2{font-weight:500;font-size:18px;margin:0 0 18px}.canvas-wrap{border-radius:12px;background:#f1ebfa;min-height:320px;overflow:hidden;display:grid;place-items:center;position:relative}
     canvas{display:none;width:100%;height:auto;max-height:480px;object-fit:contain;background:#101828}
-    video{display:none;width:100%;max-height:480px;background:#101828;object-fit:contain}
+    video{display:none;width:100%;max-height:480px;background:#101828;object-fit:contain}video.live-source{display:block!important;position:absolute;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
     .placeholder{padding:40px 18px;text-align:center;color:#777184;line-height:1.8}
     .placeholder .camera{font-size:48px;margin-bottom:12px}.placeholder strong{display:block;color:#322446}
     .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}
@@ -63,6 +63,7 @@
           <button class="btn secondary" id="choose">📷 Enviar foto</button>
           <button class="btn secondary" id="camera">🎥 Abrir câmera</button>
           <button class="btn secondary" id="capture" style="display:none">Capturar imagem</button>
+          <button class="btn secondary" id="live" style="display:none">Iniciar detecção ao vivo</button>
         </div>
         <div class="sample-box"><strong>Teste sem sair de casa</strong>
           <div class="actions">
@@ -100,11 +101,12 @@
       var canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
       var status=document.getElementById('status'), results=document.getElementById('results');
       var video=document.getElementById('video'), placeholder=document.getElementById('placeholder');
+      var liveButton=document.getElementById('live'), live=false;
       var analyze=document.getElementById('analyze'), cameraButton=document.getElementById('camera'), captureButton=document.getElementById('capture');
       var photo=null, stream=null, sessionPromise=null;
       var upload=document.getElementById('upload');
       function setStatus(msg){status.textContent=msg}
-      function stopCamera(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}video.style.display='none';captureButton.style.display='none';cameraButton.textContent='🎥 Abrir câmera'}
+      function stopCamera(){live=false;liveButton.style.display='none';liveButton.textContent='Iniciar detecção ao vivo';video.classList.remove('live-source');analyze.style.display='inline-flex';if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}video.style.display='none';captureButton.style.display='none';cameraButton.textContent='🎥 Abrir câmera'}
       function showImage(img){stopCamera();photo=img;canvas.width=img.naturalWidth||img.width;canvas.height=img.naturalHeight||img.height;ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.style.display='block';placeholder.style.display='none';results.innerHTML='<p class="mini">Imagem carregada. Clique em detectar para executar o modelo treinado.</p>';analyze.disabled=false;setStatus('Imagem pronta. Clique em "Detectar com inteligência artificial".')}
       function loadSrc(src){setStatus('Carregando imagem...');var image=new Image();image.onload=function(){showImage(image)};image.onerror=function(){setStatus('Não foi possível abrir esta imagem.')};image.src=src}
       document.getElementById('choose').onclick=function(){upload.click()};
@@ -116,13 +118,32 @@
         try{
           if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Error('Câmera não disponível. Use uma imagem.');
           stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
-          video.srcObject=stream;await video.play();canvas.style.display='none';placeholder.style.display='none';video.style.display='block';captureButton.style.display='inline-flex';cameraButton.textContent='Fechar câmera';analyze.disabled=true;setStatus('Câmera aberta. Capture uma imagem antes de analisar.');
+          video.srcObject=stream;await video.play();canvas.style.display='none';placeholder.style.display='none';video.style.display='block';captureButton.style.display='inline-flex';liveButton.style.display='inline-flex';cameraButton.textContent='Fechar câmera';analyze.disabled=true;setStatus('Câmera aberta. Capture uma imagem ou inicie a detecção contínua.');
         }catch(e){setStatus('Não foi possível abrir a câmera: '+(e.message||'verifique as permissões.'));stopCamera()}
       };
       captureButton.onclick=function(){
         if(!video.videoWidth)return;
         var c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0,c.width,c.height);
         loadSrc(c.toDataURL('image/jpeg',.9));
+      };
+      liveButton.onclick=function(){
+        if(!stream)return;
+        if(live){
+          live=false;liveButton.textContent='Iniciar detecção ao vivo';
+          video.classList.remove('live-source');canvas.style.display='none';analyze.style.display='inline-flex';
+          setStatus('Análise contínua pausada. Capture uma imagem ou reinicie a detecção ao vivo.');
+          return;
+        }
+        live=true;liveButton.textContent='Parar detecção ao vivo';
+        video.classList.add('live-source');canvas.style.display='block';analyze.style.display='none';placeholder.style.display='none';
+        async function loop(){
+          if(!live||!stream)return;
+          if(!video.videoWidth||!video.videoHeight){setTimeout(loop,250);return}
+          photo=video;canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+          await analyze.onclick();
+          if(live&&stream)setTimeout(loop,350);
+        }
+        loop();
       };
       function getSession(){
         if(!sessionPromise){
@@ -194,7 +215,7 @@
             results.appendChild(div);
           });
           setStatus('Análise concluída. '+found.length+' detecção(ões) real(is) retornada(s) pelo modelo treinado. A IA pode errar.');
-        }catch(e){setStatus('Erro ao executar detector: '+(e.message||String(e)))}
+        }catch(e){setStatus('Erro ao executar detector: '+(e.message||String(e)));if(live){live=false;liveButton.textContent='Iniciar detecção ao vivo';video.classList.remove('live-source');canvas.style.display='none';analyze.style.display='inline-flex'}}
         finally{analyze.disabled=false;analyze.textContent='◎ Detectar com inteligência artificial'}
       };
     })();
