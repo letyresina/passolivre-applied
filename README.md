@@ -1,96 +1,98 @@
-# PassoLivre
+# PassoLivre — Applied Computer Vision
 
-**Mais autonomia a cada passo.**
+**Mais autonomia a cada passo.** Protótipo acadêmico da FIAP (Global Solution CitizenTech, 2026) para registrar elementos e barreiras presentes em calçadas, com detecção experimental por visão computacional.
 
-Projeto acadêmico CitizenTech da Global Solution FIAP — Engenharia de Software, 4º ano, 2º semestre de 2026. Aplicação web para apoiar o registro de barreiras em calçadas e recursos de acessibilidade.
+## Equipe
 
-## Integrantes
+- **Leticia Resina** — RM 98069
+- **Sabrina Flores** — RM 550781
+- **Gabriel Riquetto** — RM 98685
 
-- Leticia Resina - RM 98069
-- Sabrina Flores - RM 550781
-- Gabriel Riquetto - RM 98685
+## Demonstração
 
-## Estado atual
+Há duas interfaces neste repositório:
 
-Esta versão contém a interface funcional da PassoLivre. **A classificação é manual: ainda não existe modelo treinado ou detecção automática integrada.** A aplicação não certifica a acessibilidade de um caminho.
+1. **Aplicação React** (`app/page.tsx`): câmera, envio de imagens, detecção YOLOv8, registros manuais e histórico local.
+2. **Demonstração estática** (`demo/index.html`): página independente feita para testar e gravar a detecção real no navegador, inclusive com **fotos do dataset de teste**.
 
-### Funcionalidades implementadas
+**Para publicar a demonstração via GitHub Pages:** no repositório, abra **Settings → Pages → Build and deployment → Deploy from a branch** e escolha **main / (root)**, depois **Save**. Após a ativação, acesse:
 
-- Abertura da câmera, preferindo a câmera traseira quando disponível.
-- Captura e envio de fotos, incluindo arrastar e soltar.
-- Registro manual de buraco, desnível, obstáculo na passagem, piso tátil e outras observações.
-- Local e descrição opcionais, informados pelo usuário.
-- Histórico salvo no navegador com `localStorage`.
-- Exclusão de registros e exportação em JSON.
-- Interface responsiva em português com a identidade visual da PassoLivre.
+https://letyresina.github.io/passolivre-applied/demo/
 
-Piso tátil é um recurso de acessibilidade e não é tratado como barreira.
+> O endereço só funciona após o GitHub Pages estar configurado e terminar a publicação. A versão privada anterior de chatgpt.site e o site Netlify de outro responsável **não** são atualizados automaticamente quando mudamos este repositório.
+
+## Visão computacional de verdade
+
+O detector é um **YOLOv8n customizado**, treinado anteriormente para auditoria visual de calçadas e reutilizado aqui como base experimental. O treinamento, o dataset, o notebook e as métricas estão documentados em:
+
+https://github.com/letyresina/auditoria-calcadas-yolov8
+
+O modelo original `models/best.pt` é convertido automaticamente em `public/models/calcadas.onnx` pelo workflow `.github/workflows/exportar-modelo.yml`. O arquivo ONNX é **executado no navegador** com ONNX Runtime Web. O código realiza:
+
+1. Carregamento de foto, captura por câmera ou seleção de exemplos;
+2. Redimensionamento proporcional com preenchimento (*letterbox*) para 512 × 512 pixels;
+3. Conversão RGB para tensor `float32` no formato `[1, 3, 512, 512]`;
+4. Inferência do modelo treinado e leitura de caixas, classe e confiança;
+5. Filtro de confiança de 25%, supressão de não máximos (NMS) por classe com IoU de 0,45;
+6. Conversão das coordenadas para a imagem original e desenho das **caixas reais** com classe e confiança.
+
+**As classes de detecção são** `buraco`, `desnivel` e `piso_tatil`. O formulário manual inclui outras categorias, mas isso **não** significa que o detector foi treinado para elas. **Piso tátil é um recurso de acessibilidade**, não é um defeito por si só. A identificação visual não permite atestar conformidade com normas de acessibilidade.
+
+### Dados e limitações
+
+O conjunto original possui **129 imagens de treino, 11 de validação e 6 de teste** (146 imagens após exportação e aumento de dados). A quantidade de imagens é pequena, com distribuição desigual entre classes; portanto, há risco de falsos positivos, falsos negativos e generalização limitada. O desempenho da detecção deve ser interpretado junto com as métricas e exemplos do projeto de treinamento, sem alegar segurança ou acessibilidade automática de rotas.
+
+Os exemplos presentes em `public/exemplos/` provêm do conjunto de teste do repositório de auditoria de calçadas. **As caixas mostradas são predições geradas na hora**, não anotações desenhadas previamente. O algoritmo pode retornar nenhuma caixa se a confiança for baixa.
 
 ## Executar localmente
 
-Requisitos: Node.js 22.13 ou superior e npm.
+Pré-requisito: Node.js 22.13+ e npm.
 
 ```bash
-git clone https://github.com/letyresina/-passolivre-applied.git
-cd -- -passolivre-applied
+git clone https://github.com/letyresina/passolivre-applied.git
+cd passolivre-applied
 npm run install:ci
 npm run dev
 ```
 
-Abra a URL exibida no terminal. A câmera depende da permissão do navegador e de um contexto seguro: HTTPS ou localhost. Abrir um endereço HTTP da rede local pelo celular pode impedir o acesso à câmera.
+Abra o endereço informado no terminal. O acesso à câmera requer **HTTPS ou localhost**.
 
-### Verificações
+Para teste rápido sem instalar o framework, sirva a raiz do repositório por um servidor HTTP local, por exemplo:
 
 ```bash
-npx tsc --noEmit
-npm run build
+python -m http.server 8000
 ```
 
-Na versão inicial, a verificação de tipos e a compilação passaram. A interface e a navegação para o histórico foram conferidas no navegador; o fluxo de câmera ainda precisa ser validado nos celulares utilizados pelo grupo.
+Então abra `http://localhost:8000/demo/` no mesmo computador. Para usar a câmera do celular, prefira GitHub Pages por oferecer HTTPS.
 
-## Estrutura principal
+## Teste e gravação da apresentação
 
-| Caminho | Responsabilidade |
+1. Entre na demonstração estática publicada pelo GitHub Pages (ou na aplicação React já implantada).
+2. Clique em **Exemplo: piso tátil** ou **Exemplo: desnível** para carregar uma imagem de teste.
+3. Clique em **Detectar com inteligência artificial**.
+4. Mostre as **caixas** sobre a foto e as porcentagens de confiança retornadas pelo YOLOv8.
+5. Explique o treinamento customizado, as três classes, o pré-processamento, as métricas e as limitações.
+6. Caso deseje, mostre o envio de outra foto e a câmera, quando houver permissão.
+
+Veja também [GUIA_DE_GRAVACAO.md](GUIA_DE_GRAVACAO.md).
+
+## Estrutura
+
+| Arquivo/pasta | Responsabilidade |
 | --- | --- |
-| `app/page.tsx` | Câmera, upload, formulário, histórico e exportação |
-| `app/globals.css` | Identidade visual e layout responsivo |
-| `app/layout.tsx` | Idioma e metadados |
-| `public/passolivre-logo.png` | Logo da PassoLivre |
-| `public/favicon.svg` | Ícone do site |
-| `scripts/`, `worker/`, `vite.config.ts` | Execução e build da base Vinext/Cloudflare |
+| `app/page.tsx` | Interface principal, câmera, upload, análise e histórico |
+| `lib/yolo-client.ts` | Pré-processamento, inferência ONNX, NMS e desenho de caixas |
+| `app/globals.css` | Estilos responsivos |
+| `demo/index.html` | Página independente para a demonstração |
+| `public/models/calcadas.onnx` | Modelo YOLOv8 treinado convertido |
+| `public/exemplos/` | Imagens de teste para gravar em ambiente interno |
+| `.github/workflows/exportar-modelo.yml` | Conversão e publicação do ONNX e exemplos |
+| `public/passolivre-logo.png` | Identidade visual |
 
-A aplicação usa React, TypeScript, Vinext/Vite e Lucide React. O repositório também mantém componentes e arquivos de infraestrutura do template de origem; sua presença não significa que todos sejam utilizados pela interface.
+## Privacidade
 
-## Privacidade e limitações
+O modelo e as imagens são processados no próprio navegador, sem API de inferência ou upload para um backend. O histórico da aplicação principal fica em `localStorage` no dispositivo; não há sincronização entre aparelhos. O ONNX Runtime Web e fontes podem ser carregados de redes de distribuição (CDN), portanto o primeiro carregamento requer internet. Evite capturar rostos e dados pessoais.
 
-As fotos, locais e descrições dos registros ficam neste navegador; a implementação atual não os envia a uma API de armazenamento. Não há sincronização entre dispositivos. Limpar os dados do navegador remove o histórico: exporte o JSON para guardar uma cópia. Esse arquivo inclui as imagens e os dados informados.
+## Entregáveis de Applied
 
-Evite fotografar rostos e outros dados pessoais. O navegador pode limitar o armazenamento; arquivos HEIC dependem do suporte do dispositivo. As fontes são carregadas do Google Fonts, com alternativas locais quando indisponíveis.
-
-## Próximas etapas de Applied Computer Vision
-
-1. Definir as classes e reunir imagens com autorização de uso.
-2. Anotar e revisar o dataset; separar treino, validação e teste sem vazamento de imagens semelhantes.
-3. Treinar um detector customizado compatível com o problema.
-4. Avaliar resultados por classe, erros, limitações e tempo de processamento.
-5. Integrar as detecções reais à aplicação e demonstrar a execução em tempo real.
-6. Publicar código de treinamento, documentação, resultados, relatório PDF e vídeo demonstrativo.
-
-Não há métricas ou resultados de IA nesta versão. Esta base, sozinha, ainda não representa a entrega completa de Applied.
-
-## Identidade visual
-
-| Uso | Cor |
-| --- | --- |
-| Principal | `#6D28D9` |
-| Verde-petróleo | `#0F766E` |
-| Texto | `#172033` |
-| Lavanda | `#F3EEFF` |
-| Fundo | `#F8FAFC` |
-
-Tipografia: Readex Pro e Open Sans, com fallback Arial.
-
-## Publicação
-
-A versão inicial está em https://passolivre-lety.juicybloom1.chatgpt.site e tem acesso privado à proprietária. O acesso para a banca ainda deve ser configurado e testado antes da entrega. O clone deste repositório não inclui o identificador da publicação privada.
-
+Segundo o desafio acadêmico, são necessários o **link do GitHub** com documentação e código completo, o **PDF** com título, integrantes, resumo, introdução, objetivo, explicação técnica, metodologia, resultados e conclusão, além do **vídeo de demonstração funcionando**. O repositório reúne o código e a documentação; PDF final e vídeo devem ser conferidos antes da submissão.
